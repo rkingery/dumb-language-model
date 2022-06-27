@@ -14,8 +14,13 @@ pip install -r requirements.txt
 ```
 
 ## API Instructions
-To use the DLM via API you can run flask and pass to it a json containing the 3 fields.
+To use the DLM via API you'll first want to run flask inside the repo root directory (it will run at `http://127.0.0.1:5000` by default):
+```
+FLASK_ENV=development FLASK_APP=app.py flask run
+```
 
+
+Once flask is running, pass to it a json containing the 3 fields.
 - `text`: String of text you want to seed the model with. (required)
 - `max_len`: Max number of words you want the model to generate. The longer this is the slower it will run. (default=50)
 - `temperature`: How much randomness you want the generated output to have. A number between 0 and 1, with 1 being "best" output and 0 completely random. (default=0.5)
