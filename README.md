@@ -7,10 +7,7 @@ If you want to run the DLM locally, do the following to get a local copy of the 
 ```
 git clone https://github.com/rkingery/dumb-language-model.git
 cd dumb-language-model
-git lfs install
-git clone https://huggingface.co/rkingery/dumb-language-model
-mv dumb-language-model models
-pip install -r requirements.txt
+bash setup.sh
 ```
 
 ## API Instructions
