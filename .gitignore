@@ -1,5 +1,5 @@
 # personally added
-src/*.pth
+models/*.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
