@@ -1,6 +1,6 @@
 # Just a Dumb Language Model
 
-Nothing to see here folks. Just a pretty dumb language model.
+Nothing to see here folks. Just a pretty dumb language model. Like seriously, it's pretty dumb. I trained a GPT-like model on Wikitext103 for about 15 hours on a single GPU. Because I was cheap, only a single Nvidia T4 GPU was used. The biggest transformer I could fit into GPU memory was 8 layers deep (about 90M parameters), but other than that it's got a very GPT-like architecture. Do not mistake it for GPT-3 though. It's got the IQ of an AI carrot.
 
 ## Installation
 If you want to run the DLM locally, do the following to get a local copy of the repo setup. I recommend doing this in a virtual environment.
