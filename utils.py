@@ -46,7 +46,7 @@ def clean_text(tokens):
         prev_token = token
     return ' '.join(text)
 
-def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device, skip_tokens=['<unk>']):
+def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device, skip_tokens=['<unk>'], top_k=50):
     stoi, itos = vocab.get_stoi(), vocab.get_itos()
     stoi_map = lambda word: stoi[word] if word in stoi.keys() else stoi['<unk>']
     tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
@@ -54,22 +54,27 @@ def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device
     seed_tokens = ['<bos>'] + tokenizer(seed)
     x = torch.tensor([stoi_map(word) for word in seed_tokens]).long().to(device)[None, :]
     idxs = []
-    probs = []
+    if not temperature > 0:
+        temperature += 1e-3 # keeps while loop from getting stuck on special tokens
     idx_prev = stoi['<unk>']
+    idx_prev_prev = stoi['<unk>']
+    idx = idx_prev
     for _ in range(max_len):
         yhat = model(x)
-        prob = yhat[:, -1].softmax(dim=-1)
-        if (torch.rand(1) < temperature) or (idx_prev in [stoi_map(token) for token in skip_tokens]):
-            idx = torch.multinomial(prob, 1, replacement=True).item()
-        else:
-            idx = prob.argmax(-1).item()
+        prob = yhat[:, -1].softmax(dim=-1).squeeze()
+        top_probs = torch.topk(prob, top_k, dim=-1).indices
+        prob[~top_probs] = 0.
+        while (itos[idx] in skip_tokens) or (idx == idx_prev) or (idx == idx_prev_prev):
+            if (torch.rand(1) > temperature):
+                idx = prob.argmax(-1).item()
+            else:
+                idx = torch.multinomial(prob, 1, replacement=True).item()
         idxs.append(idx)
-        probs.append(prob.unsqueeze(dim=1))
         x = torch.cat([x, torch.ones(1, 1).fill_(idx).long().to(device)], dim=1)
+        idx_prev_prev = idx_prev
         idx_prev = idx
         if itos[idx] == '<eos>':
             break
-    probs = torch.cat(probs, dim=1)
     generated = [itos[idx] for idx in idxs]
     text = seed + ' ' + clean_text(generated)
     return text
