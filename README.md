@@ -39,4 +39,7 @@ print(output)
 ```
 
 ## Frontend Instructions
-Coming Soon...
+The frontend for this app is streamlit based. To get the UI, do the following. By default it will run in your browser at `http://127.0.0.1:8501`.
+```
+streamlit run frontend.py
+```
