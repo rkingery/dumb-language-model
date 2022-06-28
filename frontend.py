@@ -12,8 +12,6 @@ temperature = st.number_input('Enter a temperature (the higher it is, the more r
                               min_value=0., max_value=1., value=TEMPERATURE)
 
 if st.button('Click to run'):
-    max_len = max_len if max_len is not None else MAX_LEN
-    temperature = temperature if temperature is not None else TEMPERATURE
     vocab = get_vocab()
     model = get_model()
     generated = generate_text(text, model, vocab, max_len=max_len, temperature=temperature)
