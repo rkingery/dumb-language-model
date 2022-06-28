@@ -7,9 +7,9 @@ from utils import generate_text, get_model, get_vocab, MAX_LEN, TEMPERATURE
 st.title('Just a Dumb Language Model')
 
 text = st.text_input('Enter some text (this will be used to seed the language model)', value='Tell me a story about')
-max_len = st.number_input('Enter a max number of words to generate', min_value=0, max_value=512, value=20)
+max_len = st.number_input('Enter a max number of words to generate', min_value=0, max_value=512, value=MAX_LEN)
 temperature = st.number_input('Enter a temperature (the higher it is, the more random the output will be)', 
-                              min_value=0., max_value=1., value=0.5)
+                              min_value=0., max_value=1., value=TEMPERATURE)
 
 if st.button('Click to run'):
     max_len = max_len if max_len is not None else MAX_LEN
