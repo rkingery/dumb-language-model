@@ -5,7 +5,7 @@ from pathlib import Path
 from model import EncoderLM
 
 MAX_LEN = 50
-TEMPERATURE = 5.0
+TEMPERATURE = 1.0
 
 device = 'cpu'
 model_dir = Path().cwd() / 'models'
@@ -46,9 +46,9 @@ def clean_text(tokens):
             text.append(token)
         prev_token = token
     detokenizer = TreebankWordDetokenizer()
-    return detokenizer.detokenize(text)
+    return detokenizer.detokenize(text).replace("' ", "'")
 
-def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device, skip_tokens=['<unk>'], top_k=100):
+def generate_text(seed, model, vocab, max_len=20, temperature=1., device=device, skip_tokens=['<unk>'], top_k=50):
     stoi, itos = vocab.get_stoi(), vocab.get_itos()
     stoi_map = lambda word: stoi[word] if word in stoi.keys() else stoi['<unk>']
     tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
@@ -81,6 +81,6 @@ def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device
 if __name__ == '__main__':
     vocab = get_vocab()
     model = get_model()
-    seed = 'The entropy of the universe is'
-    generated = generate_text(seed, model, vocab, max_len=20, temperature=0.1, device=device, skip_tokens=['<unk>'], top_k=100)
+    seed = 'Tell me a story about'
+    generated = generate_text(seed, model, vocab, max_len=20, temperature=1.0, device=device, skip_tokens=['<unk>'], top_k=50)
     print(generated)
