@@ -5,7 +5,7 @@ from pathlib import Path
 from model import EncoderLM
 
 MAX_LEN = 50
-TEMPERATURE = 0.5
+TEMPERATURE = 5.0
 
 device = 'cpu'
 model_dir = Path().cwd() / 'models'
@@ -31,6 +31,7 @@ def get_model():
     return model
 
 def clean_text(tokens):
+    from nltk.tokenize.treebank import TreebankWordDetokenizer
     text = []
     prev_token = '<bos>'
     for token in tokens:
@@ -44,9 +45,10 @@ def clean_text(tokens):
         if token not in ['<bos>', '<eos>', '<up>', '<cap>']:
             text.append(token)
         prev_token = token
-    return ' '.join(text)
+    detokenizer = TreebankWordDetokenizer()
+    return detokenizer.detokenize(text)
 
-def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device, skip_tokens=['<unk>'], top_k=50):
+def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device, skip_tokens=['<unk>'], top_k=100):
     stoi, itos = vocab.get_stoi(), vocab.get_itos()
     stoi_map = lambda word: stoi[word] if word in stoi.keys() else stoi['<unk>']
     tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
@@ -54,25 +56,21 @@ def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device
     seed_tokens = ['<bos>'] + tokenizer(seed)
     x = torch.tensor([stoi_map(word) for word in seed_tokens]).long().to(device)[None, :]
     idxs = []
-    if not temperature > 0:
-        temperature += 1e-3 # keeps while loop from getting stuck on special tokens
-    idx_prev = stoi['<unk>']
-    idx_prev_prev = stoi['<unk>']
-    idx = idx_prev
+    temperature = 1e-5 if temperature < 1e-5 else temperature
+    # idx_prev = stoi['<unk>']
+    # idx_prev_prev = stoi['<unk>']
+    # idx = idx_prev
     for _ in range(max_len):
-        yhat = model(x)
+        yhat = model(x) / temperature
         prob = yhat[:, -1].softmax(dim=-1).squeeze()
         top_probs = torch.topk(prob, top_k, dim=-1).indices
         prob[~top_probs] = 0.
-        while (itos[idx] in skip_tokens) or (idx == idx_prev) or (idx == idx_prev_prev):
-            if (torch.rand(1) > temperature):
-                idx = prob.argmax(-1).item()
-            else:
-                idx = torch.multinomial(prob, 1, replacement=True).item()
+        #while (itos[idx] in skip_tokens) or (idx == idx_prev) or (idx == idx_prev_prev):
+        idx = torch.multinomial(prob, 1, replacement=True).item()
         idxs.append(idx)
         x = torch.cat([x, torch.ones(1, 1).fill_(idx).long().to(device)], dim=1)
-        idx_prev_prev = idx_prev
-        idx_prev = idx
+        # idx_prev_prev = idx_prev
+        # idx_prev = idx
         if itos[idx] == '<eos>':
             break
     generated = [itos[idx] for idx in idxs]
@@ -81,8 +79,8 @@ def generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device
 
 
 if __name__ == '__main__':
-    vocab = get_vocab(vocab_path)
-    model = get_model(model_path)
+    vocab = get_vocab()
+    model = get_model()
     seed = 'The entropy of the universe is'
-    generated = generate_text(seed, model, vocab, max_len=20, temperature=0.5, device=device, skip_tokens=['<unk>'])
+    generated = generate_text(seed, model, vocab, max_len=20, temperature=0.1, device=device, skip_tokens=['<unk>'], top_k=100)
     print(generated)
