@@ -46,7 +46,10 @@ def clean_text(tokens):
             text.append(token)
         prev_token = token
     detokenizer = TreebankWordDetokenizer()
-    return detokenizer.detokenize(text).replace("' ", "'").replace(" . ", ". ").replace(" ? ", "? ").replace(" ! ", "! ")
+    text = detokenizer.detokenize(text)
+    text = text.replace(" ' ", "' ").replace("' ", "'")
+    text = text.replace(" . . . ", "...").replace(" . ", ". ").replace(" ? ", "? ").replace(" ! ", "! ")
+    return text
 
 def generate_text(seed, model, vocab, max_len=20, temperature=1., device=device, skip_tokens=['<unk>'], top_k=50):
     stoi, itos = vocab.get_stoi(), vocab.get_itos()
