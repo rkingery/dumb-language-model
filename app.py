@@ -1,41 +1,20 @@
-import json
+import streamlit as st
 import torch
 import torchtext
-from flask import Flask, jsonify, request
 
 from utils import generate_text, get_model, get_vocab, MAX_LEN, TEMPERATURE
 
+st.title('Dumb Language Model')
 
-app = Flask(__name__)
+text = st.text_input('Enter some text (this will be used to seed the language model)', value='Tell me a story about')
+max_len = st.number_input('Enter a max number of words to generate', min_value=0, max_value=512, value=MAX_LEN)
+temperature = st.number_input('Enter a temperature (the higher it is, the more random the output will be)', 
+                              min_value=1., max_value=100., value=TEMPERATURE)
 
-
-@app.route('/predict', methods=['POST'])
-def predict():
-    response = request.get_json()
-    text = response['text']
-    max_len = response['max_len'] if response['max_len'] is not None else MAX_LEN
-    temperature = response['temperature'] if response['temperature'] is not None else TEMPERATURE
+if st.button('Click to run'):
     vocab = get_vocab()
     model = get_model()
     generated = generate_text(text, model, vocab, max_len=max_len, temperature=temperature)
-    return jsonify({'generated_text': generated})
-
-
-if __name__ == '__main__':
-    app.run()
     
-
-# To test, run flask at localhost:5000 (default port) and do
-
-# import requests, json
-
-# data = {
-#     'text': 'This is a story about',
-#     'max_len': None,
-#     'temperature': None
-# }
-
-# resp = requests.post("http://127.0.0.1:5000/predict", json=data)
-# output = json.loads(resp.content)
-
-# print(output)
+    st.markdown('### Generated Text')
+    st.markdown(f'{generated}')

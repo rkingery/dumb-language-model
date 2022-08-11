@@ -15,14 +15,14 @@ bash setup.sh
 ## API Instructions
 To use the DLM via API you'll first want to run flask inside the repo root directory (it will run at `http://127.0.0.1:5000` by default):
 ```
-FLASK_ENV=development FLASK_APP=app.py flask run
+FLASK_ENV=development FLASK_APP=api.py flask run
 ```
 
 
 Once flask is running, pass to it a json containing the 3 fields.
 - `text`: String of text you want to seed the model with. (required)
 - `max_len`: Max number of words you want the model to generate. The longer this is the slower it will run. (default=50)
-- `temperature`: How much randomness you want the generated output to have. A number between 0 and 1, with 1 being "best" output and 0 completely random. (default=0.5)
+- `temperature`: How much randomness you want the generated output to have. Any number greater or equal to 1. The higher the number, the more random the generated text will be. (default=1)
 
 Here is an example of how to use the DLM API in python.
 ```
@@ -43,5 +43,5 @@ print(output)
 ## Frontend Instructions
 The frontend for this app is streamlit based. To get the UI, do the following. By default it will run in your browser at `http://127.0.0.1:8501`.
 ```
-streamlit run frontend.py
+streamlit run app.py
 ```

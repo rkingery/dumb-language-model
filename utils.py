@@ -46,7 +46,7 @@ def clean_text(tokens):
             text.append(token)
         prev_token = token
     detokenizer = TreebankWordDetokenizer()
-    return detokenizer.detokenize(text).replace("' ", "'")
+    return detokenizer.detokenize(text).replace("' ", "'").replace(" . ", ". ").replace(" ? ", "? ").replace(" ! ", "! ")
 
 def generate_text(seed, model, vocab, max_len=20, temperature=1., device=device, skip_tokens=['<unk>'], top_k=50):
     stoi, itos = vocab.get_stoi(), vocab.get_itos()
@@ -56,21 +56,15 @@ def generate_text(seed, model, vocab, max_len=20, temperature=1., device=device,
     seed_tokens = ['<bos>'] + tokenizer(seed)
     x = torch.tensor([stoi_map(word) for word in seed_tokens]).long().to(device)[None, :]
     idxs = []
-    temperature = 1e-5 if temperature < 1e-5 else temperature
-    # idx_prev = stoi['<unk>']
-    # idx_prev_prev = stoi['<unk>']
-    # idx = idx_prev
     for _ in range(max_len):
-        yhat = model(x) / temperature
+        yhat = model(x)
         prob = yhat[:, -1].softmax(dim=-1).squeeze()
+        prob /=  temperature
         top_probs = torch.topk(prob, top_k, dim=-1).indices
         prob[~top_probs] = 0.
-        #while (itos[idx] in skip_tokens) or (idx == idx_prev) or (idx == idx_prev_prev):
         idx = torch.multinomial(prob, 1, replacement=True).item()
         idxs.append(idx)
         x = torch.cat([x, torch.ones(1, 1).fill_(idx).long().to(device)], dim=1)
-        # idx_prev_prev = idx_prev
-        # idx_prev = idx
         if itos[idx] == '<eos>':
             break
     generated = [itos[idx] for idx in idxs]
